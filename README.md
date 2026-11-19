@@ -41,11 +41,13 @@ cd ~/claude-animation-skills && ./install.sh
 
 `install.sh` links every skill into `~/.claude/skills/` (so they show up as `/graph`, `/map-route` and so on) and runs the one-time setup. The setup installs three.js and Playwright into `kit/node_modules`, fetches GSAP and warms up HyperFrames.
 
-`/stick-figure` and `/zach-d-films` also need a free voice and word timings. They run on your computer, with no API key, and need about 1 GB of models, downloaded once:
+`/stick-figure` and `/zach-d-films` also need a free voice and word timings. They run on your computer, with no API key, and need about 1 GB of models, downloaded once. The voice needs Python 3.10 to 3.13 (macOS's own `python3` is 3.9, so `brew install python@3.12` if you have nothing newer; the setup finds it):
 
 ```bash
 ./install.sh --voice
 ```
+
+If IPv6 stalls on your network, the setup notices and downloads over IPv4 instead. `ANIM_IPV4=1 ./install.sh` forces it.
 
 To update later, run `git pull && ./install.sh`.
 
