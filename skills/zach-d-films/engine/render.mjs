@@ -6,13 +6,18 @@ import http from 'node:http';
 import fs from 'node:fs';
 import path from 'node:path';
 import { spawn } from 'node:child_process';
+import { fileURLToPath } from 'node:url';
 
-const ROOT = path.dirname(new URL(import.meta.url).pathname);
+const ROOT = path.dirname(fileURLToPath(import.meta.url)); // decodes %20 etc., so paths with spaces work
 const types = { '.html': 'text/html', '.js': 'text/javascript', '.woff2': 'font/woff2', '.m4a': 'audio/mp4' };
 const server = http.createServer((req, res) => {
-  const p = path.join(ROOT, decodeURIComponent(req.url.split('?')[0]));
+  let p;
+  try { p = path.resolve(ROOT, '.' + path.posix.normalize('/' + decodeURIComponent(req.url.split('?')[0]))); } catch { res.writeHead(400); res.end(); return; }
+  // only serve files inside the engine folder
+  if (p.includes('\0') || (p !== ROOT && !p.startsWith(ROOT + path.sep))) { res.writeHead(403); res.end(); return; }
   fs.readFile(p, (e, d) => { if (e) { res.writeHead(404); res.end(); return; } res.writeHead(200, { 'content-type': types[path.extname(p)] || 'application/octet-stream' }); res.end(d); });
-}).listen(0);
+}).listen(0, '127.0.0.1'); // loopback only: the render server never needs to be reachable from the network
+if (!server.listening) await new Promise((ok, fail) => { server.once('listening', ok); server.once('error', fail); });
 const port = server.address().port;
 
 // GL=swiftshader forces software WebGL (slow, but works on machines without a usable GPU)
@@ -21,7 +26,7 @@ const browser = await chromium.launch({ args: [...GL, '--ignore-gpu-blocklist'] 
 const page = await browser.newPage({ viewport: { width: 720, height: 1280 } });
 page.on('console', m => { if (m.type() === 'error' || m.type() === 'warning') console.log('[page]', m.text()); });
 page.on('pageerror', e => console.log('[pageerror]', e.message));
-await page.goto(`http://localhost:${port}/index.html?render=1`);
+await page.goto(`http://127.0.0.1:${port}/index.html?render=1`);
 await page.waitForFunction(() => window.renderAt && window.ready);
 await page.evaluate(() => window.ready);
 const shot = () => page.screenshot({ clip: { x: 0, y: 0, width: 720, height: 1280 }, type: 'png' });
