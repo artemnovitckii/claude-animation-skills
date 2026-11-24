@@ -17,6 +17,26 @@ description: Makes a 3D cartoon "what if" explainer short (9:16) in the style of
 
 A worked example comes with it: `engine/` is a finished 29.5 s short, "Could ancient armour stop a bullet?" (9 shots: a gun shot, a slow-motion bullet flattening on a vest, a sword on chain mail, a mace on plate with a red ripple, an archer, an arrow and a scream, a bullet through two stands). It ships without its voiceover, so you bring a voice. Not affiliated with Zack D. Films; "the style" means the format: a question, a misconception, a "But" twist, building examples and a payoff.
 
+## More than one kind of person
+
+`makeHuman` has four outfits and all of them are medieval, because this skill was built for the
+armour short. `src/cast3d.js` adds `makeFigure3D(opts)`, which gives the same rig a modern cast:
+
+```js
+import { makeFigure3D, STAND3 } from './cast3d.js';
+const f = makeFigure3D({ build: 'curvy', skin: 'tan', hair: 'bun', hairCol: 'auburn',
+                         glasses: 'round', outfit: 'dress', cols: ['#c2566f', '#e8b43a'] });
+f.setPose(STAND3);          // same joint map makeHuman takes
+scene.add(f.root);
+```
+
+Six builds, six outfits (`tee` `shirt` `hoodie` `knit` `suit` `dress`), six hairstyles, four beards,
+three glasses, eight skin tones and twenty hair colours. It imports one thing from `human.js`,
+`torsoShell`, and builds the rest itself, so nothing existing changes behaviour.
+
+The option names match the `castFig` kit for the stick-figure skill, so one character description
+drives either renderer.
+
 ## First use
 This skill's folder is the "Base directory" Claude Code shows when it loads it.
 ```bash

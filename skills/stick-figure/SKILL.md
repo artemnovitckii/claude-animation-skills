@@ -33,12 +33,34 @@ A reel is one folder:
 - `script.json`: the voiceover, one sentence per entry.
 - `captions.json`: optional text swaps for captions (`{"twenty five": "25"}`).
 - `web/shots.js`: the shot list. Each shot is `SHOTS.push({start, end, tr, draw(ctx, lt, t)})` in seconds of the voiceover; `lt` is time inside the shot, `tr` is the transition out (`'whip'` or `'cut'`).
-- `web/lib.js` (easing, keyframes `kf`, shapes, text), `web/chars.js` (the stick rig `drawStick`, hats, faces, arm IK, the eye patch), `web/env.js` (sky, clouds, sea, ships, deck, barrels, cannon, lantern, below deck), `web/main.js` (whip blur, vignette, grain, captions). Add new props to `env.js` or a new `env2.js` (list it in `web/index.html`).
+- `web/lib.js` (easing, keyframes `kf`, shapes, text), `web/chars.js` (the stick rig `drawStick`, hats, faces, arm IK, the eye patch), `web/cast.js` (`castFig`, the same rig with more than one body: builds, outfits, hair, beards, glasses, animals, pets, wings), `web/env.js` (sky, clouds, sea, ships, deck, barrels, cannon, lantern, below deck), `web/main.js` (whip blur, vignette, grain, captions). Add new props to `env.js` or a new `env2.js` (list it in `web/index.html`).
 - `audio.py`: music and SFX, all synthesised in code and placed in voiceover seconds.
 
 `make.sh` makes the voice, aligns every word (`audio/words_new.json`), mixes the sound, renders the shots in parallel and writes `<folder>/<folder name>.mp4`.
 
 **Timing:** `audio/words_ref.json` is the voice the shots were timed against. When the voice changes but the words don't, `make.sh` warps the shots onto the new take, so a new recording needs no edits. If the script changes, delete `audio/words_ref.json` (the next take becomes the reference) and re-time `shots.js`.
+
+## More than one kind of person
+
+`drawStick` draws one body. `castFig(ctx, o)` in `web/cast.js` takes every option `drawStick`
+takes and adds `build`, `outfit`, `hair`, `hairCol`, `skin`, `beard`, `glasses`, `animal`, `wings`
+and `halo`, so two characters in a scene can look like two people:
+
+```js
+castFig(ctx, { x, y, s, build: 'broad', hair: 'buzz', beard: 'short', glasses: 'square',
+               skin: 'tan', outfit: 'shirt', cols: ['#2f63c9', '#eef1f5'] });
+castFig(ctx, { x, y, s, animal: 'panda', outfit: 'hoodie', cols: ['#d8604e', '#d8604e'] });
+petFig(ctx,  { x, y, s: 420, kind: 'dog', t });        // four legs, for a pet beside someone
+```
+
+Six builds, nineteen outfits, sixteen hairstyles, twenty-two hair colours, eight skin tones, five
+beards, three glasses, eight animals, plus wings, a halo and presets (`CUPID`, `RICH_MAN`,
+`GLAM_WOMAN`) that are plain options objects you spread and override.
+
+An animal is the same rig with a different head, so it keeps the poses, the arm IK and all the
+outfits. `build: 'slim'` with `hat: 'none'` draws exactly what `drawStick` draws, pixel for pixel,
+so an existing reel can be converted one figure at a time.
+
 
 ## Steps
 1. **Script.** About 110 to 120 words for 38 to 40 seconds, one idea per sentence: a "what if" hook, the common belief, a turn on "But", examples that build, one shot that shows the mechanism, and a payoff that answers the hook. Show it to the user before animating.
